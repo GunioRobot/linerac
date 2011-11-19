@@ -12,3 +12,4 @@ a,b,c  %		Modulo the contents of register b by the contents of register a and st
 a <> b			Swaps the contents of a and b
 
 Write a program, which emulates the calculator by reading a stream of commands from a text file. Implement error messaging.
+
