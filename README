@@ -1,0 +1,14 @@
+LINERAC is a 12-register calculator, which can store double-precision numbers and can follow 9 commands, which
+are given as following:
+
+? a			Prints the contents of a
+LC b,a			Stores the number a in regsiter b
++  a,b,c		Sums the contents of registers a and b and stores the result in register c
+*  a,b,c		Multiplies the contents of registers a and b and stores the result in register c
+#  a,b,c		Sorts the contents of registers a, b and c as given in decreasing number
+a,b,c  -		Finds the difference between the contents of registers b and a and stores it in register c
+a,b,c  /		Divides the contents of register b by the contents of register a and stores the result in register c
+a,b,c  %		Modulo the contents of register b by the contents of register a and stores the result in register c
+a <> b			Swaps the contents of a and b
+
+Write a program, which emulates the calculator by reading a stream of commands from a text file. Implement error messaging.
