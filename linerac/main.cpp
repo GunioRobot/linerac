@@ -6,28 +6,30 @@ using namespace std;
 
 typedef unsigned short ushort;
 
-double registers[12];						// Stores the 12 registers, that our "calculator" has
-bool registersUsable[12];					// Remembers which registers are usable
+double registers[12];										// Stores the 12 registers, that our "calculator" has
+bool registersUsable[12];									// Remembers which registers are usable
 
-void throwError(ushort,ostream&);			// Displays error message
-bool isUsable(ushort);						// Checks if a register is usable
+/* [TODO: Implement the error handling] */
+void throwError(ushort,ostream&);							// Displays error messages
+
+bool isValidRegister(ushort);								// Checks if a register is valid and usable
 
 void storeWhitespaceSeperated(istream&,string&,string&);	// Gets the next two commands from the input stream
 bool isCommand(string&);									// Checks if the given string is a valid command
 ushort getArity(string&);									// Gets the arity of a command
 
-bool isCommaSeperatedNumbersList(string);
+bool isCommaSeperatedNumbersList(string&);					// Checks if a list is a list of numbers and commas, that doesn't begin or end with a comma
 
-bool isNumber(string);
+bool isNumber(string);	/*[Obsolete?]*/
 
-ushort countNumbersInCommaSeperatedList(string&);
+ushort countNumbersInCommaSeperatedList(string&);			// Counts the amount of numbers in a list
 
-void storeNumbers(string&,int&);
-void storeNumbers(string&,int&,int&);
-void storeNumbers(string&,int&,int&,int&);
+void storeNumbers(string&,int&);							// Converts a single value to an integer
+void storeNumbers(string&,int&,int&);						// Converts two comma-seperated values to an integer
+void storeNumbers(string&,int&,int&,int&);					// Converts three comma-seperated values to integers
 
 
-int main2()
+int main()
 {
 	string firstPart,secondPart,thirdPart;
 
@@ -51,27 +53,69 @@ int main2()
 
 		// Store first part in a variable
 		// Store second part in a variable
+		storeWhitespaceSeperated(inputFile,firstPart,secondPart);
 
 		// if first part is a command
+		if(isCommand(firstPart))
+		{
 			// we store the arity of the command
+			ushort arity = getArity(firstPart);
 
 			// if second part is a comma-seperated list of numbers
+			if(isCommaSeperatedNumbersList(secondPart))
+			{
+				/* [TODO: Probably rethink how I implement the whole variable thing] */
+				int functionVariable1, functionVariable2, functionVariable3;
 
 				// we count the ammount of numbers in the list
+				ushort amountOfNumbers = countNumbersInCommaSeperatedList(secondPart);
 
 				// if the ammount of numbers is different than the arity of the command
-				
-					// error!
+				if (arity!=amountOfNumbers)				
+					throwError(0,cout);					// error!
 
-			// we store the numbers (tokenization, where ',' is the token)
-				
-			// if the values of the numbers are invalid registers
-				
-				// error!
+				/* [TODO: Think of a switch-case variant for performance boost] */
+				/* [This really is ugly code and needs to be redone] */
+				// we store the numbers (tokenization, where ',' is the token) and
+				// if the values of the numbers are invalid registers -> // error!
+				if (amountOfNumbers==1)		
+				{
+					storeNumbers(secondPart,functionVariable1);
+					
+					if(!isValidRegister(functionVariable1))		// if it's not a valid register
+						throwError(0,cout);			// error!
+				}
+				else if (amountOfNumbers==2)
+				{
+					storeNumbers(secondPart,functionVariable1,functionVariable2);
 
-			// apply the command
-				
+					if(!(isValidRegister(functionVariable1) && isValidRegister(functionVariable2)))	// if are not valid registers
+					{
+						throwError(0,cout);			// error!
+					}
+				}
+				else if (amountOfNumbers==3)
+				{
+					storeNumbers(secondPart,functionVariable1,functionVariable2,functionVariable3);
 
+					if(!(isValidRegister(functionVariable1) && isValidRegister(functionVariable2) && isValidRegister(functionVariable3)))	// if are not valid registers
+					{
+						throwError(0,cout);			// error!
+					}
+				}
+				else
+				{
+					throwError(0,cout);				// error!
+				}
+
+				// apply the command
+				cout << "Apply command" << endl;
+			}
+			else			// else second part is not a comma-seperated list, so error!
+			{
+				throwError(0,cout);
+			}
+		}
 		// else if first part is a comma-seperated list of numbers
 			// we count the ammount of numbers
 
@@ -106,9 +150,9 @@ int main2()
 }
 
 // Cheks if a register is usable
-bool isUsable(ushort index)
+bool isValidRegister(ushort index)
 {
-	return registersUsable[index];
+	return registersUsable[index] && index>=0 && index<=12;
 }
 
 void throwError(ushort errorCode,ostream& stream)
