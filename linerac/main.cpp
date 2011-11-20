@@ -1,3 +1,6 @@
+/* 
+	Made in Visual Studio 2010
+*/
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,11 +14,16 @@ bool registersUsable[12];									// Remembers which registers are usable
 
 /* [TODO: Implement the error handling] */
 void throwError(ushort,ostream&);							// Displays error messages
-
+void throwError(ushort,ostream&,int*&,ushort&);
+bool areValidRegisters(ushort*&,ushort);
 bool isValidRegister(ushort);								// Checks if a register is valid and usable
 
 void storeWhitespaceSeperated(istream&,string&,string&);	// Gets the next two commands from the input stream
-bool isCommand(string&);									// Checks if the given string is a valid command
+
+bool isSwapCommand(string&);								// Checks if the given string is a swap command
+bool isCommandInBeginning(string&);
+bool isCommandAtEnd(string&);
+
 ushort getArity(string&);									// Gets the arity of a command
 
 bool isCommaSeperatedNumbersList(string&);					// Checks if a list is a list of numbers and commas, that doesn't begin or end with a comma
@@ -24,10 +32,10 @@ bool isNumber(string);	/*[Obsolete?]*/
 
 ushort countNumbersInCommaSeperatedList(string&);			// Counts the amount of numbers in a list
 
-void storeNumbers(string&,int&);							// Converts a single value to an integer
-void storeNumbers(string&,int&,int&);						// Converts two comma-seperated values to an integer
-void storeNumbers(string&,int&,int&,int&);					// Converts three comma-seperated values to integers
-
+void storeNumbers(string&,ushort*&,ushort&);						// Converts a variable ammount of comma-seperated values and saves them inside an array
+void storeNumbers(string&,ushort&);							// Converts a single value to an integer
+void storeNumbers(string&,ushort&,ushort&);						// Converts two comma-seperated values to an integer
+void storeNumbers(string&,ushort&,ushort&,ushort&);					// Converts three comma-seperated values to integers
 
 int main()
 {
@@ -56,7 +64,7 @@ int main()
 		storeWhitespaceSeperated(inputFile,firstPart,secondPart);
 
 		// if first part is a command
-		if(isCommand(firstPart))
+		if(isCommandInBeginning(firstPart))
 		{
 			// we store the arity of the command
 			ushort arity = getArity(firstPart);
@@ -64,52 +72,25 @@ int main()
 			// if second part is a comma-seperated list of numbers
 			if(isCommaSeperatedNumbersList(secondPart))
 			{
-				/* [TODO: Probably rethink how I implement the whole variable thing] */
-				int functionVariable1, functionVariable2, functionVariable3;
-
-				// we count the ammount of numbers in the list
-				ushort amountOfNumbers = countNumbersInCommaSeperatedList(secondPart);
-
 				// if the ammount of numbers is different than the arity of the command
-				if (arity!=amountOfNumbers)				
+				if (arity!=countNumbersInCommaSeperatedList(secondPart))				
 					throwError(0,cout);					// error!
 
-				/* [TODO: Think of a switch-case variant for performance boost] */
-				/* [This really is ugly code and needs to be redone] */
-				// we store the numbers (tokenization, where ',' is the token) and
-				// if the values of the numbers are invalid registers -> // error!
-				if (amountOfNumbers==1)		
-				{
-					storeNumbers(secondPart,functionVariable1);
-					
-					if(!isValidRegister(functionVariable1))		// if it's not a valid register
-						throwError(0,cout);			// error!
-				}
-				else if (amountOfNumbers==2)
-				{
-					storeNumbers(secondPart,functionVariable1,functionVariable2);
+				/* [TODO: Implement memory component in the error management system; Currently memory gets freed at end of this if] */
+				ushort* functionVariable = new ushort[arity];
 
-					if(!(isValidRegister(functionVariable1) && isValidRegister(functionVariable2)))	// if are not valid registers
-					{
-						throwError(0,cout);			// error!
-					}
-				}
-				else if (amountOfNumbers==3)
-				{
-					storeNumbers(secondPart,functionVariable1,functionVariable2,functionVariable3);
+				/* [TODO: Rethink the whole numbers storing 'mechanic'] */
+				storeNumbers(secondPart,functionVariable,arity);
 
-					if(!(isValidRegister(functionVariable1) && isValidRegister(functionVariable2) && isValidRegister(functionVariable3)))	// if are not valid registers
-					{
-						throwError(0,cout);			// error!
-					}
-				}
-				else
+				if(!areValidRegisters(functionVariable,arity))
 				{
-					throwError(0,cout);				// error!
+					throwError(0,cout);
 				}
 
 				// apply the command
 				cout << "Apply command" << endl;
+
+				delete [] functionVariable;	// Clean up after ourselves...
 			}
 			else			// else second part is not a comma-seperated list, so error!
 			{
@@ -155,10 +136,40 @@ bool isValidRegister(ushort index)
 	return registersUsable[index] && index>=0 && index<=12;
 }
 
+// Checks if a range of registers are all usable
+bool areValidRegisters(ushort* &registers,ushort arity)
+{
+	for(int i = 0;i<arity;i++)
+		if(!isValidRegister(registers[i]))
+			return false;
+
+	return true;
+}
+
 void throwError(ushort errorCode,ostream& stream)
 {
-	stream << "Error!" << endl;
+	stream << "Error type " << errorCode << ' ';
 }
+
+void throwError(ushort errorCode,ostream& stream,int* &data,ushort& length)
+{
+	throwError(errorCode,stream);
+	stream << "for arguments: ";
+	
+	for(int i =0;i<length;i++)
+	{
+		stream << data[i];
+
+		if(i==length-1)
+			cout << endl;
+		else
+			cout << ' ';
+
+	}
+
+	delete [] data;
+}
+
 
 // Gets first two elements of a command
 void storeWhitespaceSeperated(istream& stream,string& firstPart ,string& secondPart)
@@ -172,18 +183,28 @@ void storeWhitespaceSeperated(istream& stream,string& firstPart ,string& secondP
 	secondPart = buffer;
 }
 
-// Determins if a string is a valid operation
-bool isCommand(string& operation)
+// Determins if a string is a swap operation
+bool isSwapCommand(string& operation)
 {
-	return 
+	return operation.compare("<>")==0;
+}
+
+bool isCommandInBeginning(string& operation)
+{
+	return
+		operation.compare("LC")==0 ||
+		operation.compare("?")==0  ||
 		operation.compare("+")==0  ||
+		operation.compare("*")==0  ||
+		operation.compare("#")==0 ;
+}
+
+bool isCommandAtEnd(string& operation)
+{
+	return
 		operation.compare("-")==0  ||
 		operation.compare("\\")==0 ||
-		operation.compare("*")==0  ||
-		operation.compare("%")==0  ||
-		operation.compare("#")==0  ||
-		operation.compare("<>")==0 ||
-		operation.compare("?")==0;
+		operation.compare("%")==0 ;
 }
 
 // Returns the arity of a command
@@ -243,13 +264,13 @@ ushort countNumbersInCommaSeperatedList(string& list)
 }
 
 // If a list is made out of one number
-void storeNumbers(string& list,int& returnValueA)
+void storeNumbers(string& list,ushort& returnValueA)
 {
 	returnValueA = atoi(list.c_str());	// Pass the c-style string to the standard function
 }
 
 // If a list is made out of two numbers
-void storeNumbers(string& list,int& returnValueA, int& returnValueB)
+void storeNumbers(string& list,ushort& returnValueA, ushort& returnValueB)
 {
 	auto commaSeperator = list.begin();	// We are gonna find where our comma is; Start looking from the start
 
@@ -264,7 +285,7 @@ void storeNumbers(string& list,int& returnValueA, int& returnValueB)
 }
 
 // If a list is made out of three numbers
-void storeNumbers(string& list,int& returnValueA, int& returnValueB, int& returnValueC)
+void storeNumbers(string& list,ushort& returnValueA, ushort& returnValueB, ushort& returnValueC)
 {
 	auto commaSeperator = list.begin();	// Start looking for the first comma from the start	
 
@@ -276,4 +297,20 @@ void storeNumbers(string& list,int& returnValueA, int& returnValueB, int& return
 
 	storeNumbers(string(list.begin(),commaSeperator),returnValueA);					// The value to the left of the comma is a 1-element list, so we pass it to the corresponding function 
 	storeNumbers(string(commaSeperator+1,list.end()),returnValueB, returnValueC);	// The value to the left of the comma is a 2-element list, so we pass it to the corresponding function
+}
+
+void storeNumbers(string& list,ushort* &inputArray,ushort& arity)
+{
+	switch(arity)
+	{
+	case 1:
+		storeNumbers(list,inputArray[0]);
+		break;
+	case 2:
+		storeNumbers(list,inputArray[0],inputArray[1]);
+		break;
+	case 3:
+		storeNumbers(list,inputArray[0],inputArray[1],inputArray[2]);
+		break;
+	}
 }
