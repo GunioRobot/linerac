@@ -1,4 +1,4 @@
-/* 
+/*
 	Made in Visual Studio 2010
 */
 #include <iostream>
@@ -43,7 +43,7 @@ int main()
 
 	// Make all registers unusable
 	for(int index = 0;index<12;index++)
-		registersUsable[index] = false;		
+		registersUsable[index] = false;
 
 	// Open input text
 	ifstream inputFile;
@@ -54,7 +54,7 @@ int main()
 	{
 		/*
 			Lets assume a command is made out of parts, which are seperated by whitespace.
-			In these terms, a command can be made of either two or three parts, so to get an idea about what our command will be, 
+			In these terms, a command can be made of either two or three parts, so to get an idea about what our command will be,
 			we'll assume that it's a two piece command.
 			After storing the pieces in memory, we will eventualy extract another piece *if* that is necesary.
 		*/
@@ -73,7 +73,7 @@ int main()
 			if(isCommaSeperatedNumbersList(secondPart))
 			{
 				// if the ammount of numbers is different than the arity of the command
-				if (arity!=countNumbersInCommaSeperatedList(secondPart))				
+				if (arity!=countNumbersInCommaSeperatedList(secondPart))
 					throwError(0,cout);					// error!
 
 				/* [TODO: Implement memory component in the error management system; Currently memory gets freed at end of this if] */
@@ -103,26 +103,26 @@ int main()
 			// we store the numbers (tokenization, where ',' is the token)
 
 			// if the values of the numbers are invalid registers
-				
+
 				// error!
-			
-			
+
+
 			// if the second part is a valid command
 
 				// we check if the ammount of numbers does not equal the arity of the command
-					
+
 					// error!
-				
+
 				// if the chosen registers are unavailable
-					
+
 					// error!
-				
+
 				// if the command is the <> command
 
 					// Store the third part in a variable
 
 				// apply the command
-			
+
 			// error!
 	}
 	while(!inputFile.eof());	// while end-of-file not reached
@@ -155,7 +155,7 @@ void throwError(ushort errorCode,ostream& stream,int* &data,ushort& length)
 {
 	throwError(errorCode,stream);
 	stream << "for arguments: ";
-	
+
 	for(int i =0;i<length;i++)
 	{
 		stream << data[i];
@@ -214,7 +214,7 @@ ushort getArity(string& command)
 	{
 		if(command.compare("?")==0)
 			return 1;
-	
+
 		return 3;
 	}
 	else if(command.size()==2)
@@ -226,8 +226,8 @@ ushort getArity(string& command)
 
 bool isCommaSeperatedNumbersList(string& list)
 {
-	/* 
-		A comma seperated list of numbers can contain only numbers and commas 
+	/*
+		A comma seperated list of numbers can contain only numbers and commas
 		and can't begin or end with a comma
 	*/
 
@@ -247,8 +247,8 @@ bool isCommaSeperatedNumbersList(string& list)
 // Counts the ammount of numbers in a list
 ushort countNumbersInCommaSeperatedList(string& list)
 {
-	/* 
-		If a list is made out of numbers, seperated by commas, the ammount of numbers in that list is equal to 
+	/*
+		If a list is made out of numbers, seperated by commas, the ammount of numbers in that list is equal to
 		the ammount of comas +1, because there is a number after the last comma
 	*/
 
@@ -287,7 +287,7 @@ void storeNumbers(string& list,ushort& returnValueA, ushort& returnValueB)
 // If a list is made out of three numbers
 void storeNumbers(string& list,ushort& returnValueA, ushort& returnValueB, ushort& returnValueC)
 {
-	auto commaSeperator = list.begin();	// Start looking for the first comma from the start	
+	auto commaSeperator = list.begin();	// Start looking for the first comma from the start
 
 	do
 	{
@@ -295,7 +295,7 @@ void storeNumbers(string& list,ushort& returnValueA, ushort& returnValueB, ushor
 	}
 	while(*commaSeperator!=',');		// Until we find the comma
 
-	storeNumbers(string(list.begin(),commaSeperator),returnValueA);					// The value to the left of the comma is a 1-element list, so we pass it to the corresponding function 
+	storeNumbers(string(list.begin(),commaSeperator),returnValueA);					// The value to the left of the comma is a 1-element list, so we pass it to the corresponding function
 	storeNumbers(string(commaSeperator+1,list.end()),returnValueB, returnValueC);	// The value to the left of the comma is a 2-element list, so we pass it to the corresponding function
 }
 
